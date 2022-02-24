@@ -1,7 +1,7 @@
 ﻿
 namespace Application.Models
 {
-    internal class Result
+    public class Result
     {
         internal Result(bool succeeded, IEnumerable<string> errors)
         {
