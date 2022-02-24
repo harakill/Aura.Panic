@@ -2,7 +2,7 @@
 
 namespace Application.Common.Interfaces
 {
-    internal interface IIdentityService
+    public interface IIdentityService
     {
         Task<string> GetUserNameAsync(string userId);
 
