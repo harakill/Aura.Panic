@@ -16,10 +16,11 @@ namespace Infrastructure.Persistence
 
         public ApplicationDbContext(
             DbContextOptions options, IOptions<OperationalStoreOptions> operationalStoreOptions,
-            ICurrentUserService currentUserService) 
+            ICurrentUserService currentUserService, IDateTime dateTime) 
             : base(options, operationalStoreOptions)
         {
             _currentUserService = currentUserService;
+            _dateTime = dateTime;
         }
 
         public DbSet<Panic> Panics => Set<Panic>();
