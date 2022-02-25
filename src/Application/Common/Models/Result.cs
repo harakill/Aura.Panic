@@ -1,5 +1,5 @@
 ﻿
-namespace Application.Models
+namespace Application.Common.Models
 {
     public class Result
     {
