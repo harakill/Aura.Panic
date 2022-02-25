@@ -6,6 +6,7 @@ using Infrastructure.Identity;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.Reflection;
 
 namespace Infrastructure.Persistence
 {
@@ -25,7 +26,7 @@ namespace Infrastructure.Persistence
 
         public DbSet<Panic> Panics => Set<Panic>();
 
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             foreach (var entry in ChangeTracker.Entries<AuditableEntity>())
             {
@@ -43,7 +44,14 @@ namespace Infrastructure.Persistence
                 }
             }
 
-            return base.SaveChangesAsync(cancellationToken);
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+            base.OnModelCreating(builder);
         }
     }
 }
