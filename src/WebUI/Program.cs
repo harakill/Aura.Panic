@@ -1,12 +1,12 @@
 using Application;
 using Application.Common.Interfaces;
 using Infrastructure;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.EntityFrameworkCore;
+//using Microsoft.AspNetCore.Authentication;
+//using Microsoft.EntityFrameworkCore;
 using NSwag;
 using NSwag.Generation.Processors.Security;
-using WebUI.Data;
-using WebUI.Models;
+//using WebUI.Data;
+//using WebUI.Models;
 using WebUI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,8 +29,8 @@ builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
 //builder.Services.AddIdentityServer()
 //    .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
 
-builder.Services.AddAuthentication()
-    .AddIdentityServerJwt();
+//builder.Services.AddAuthentication()
+//    .AddIdentityServerJwt();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();

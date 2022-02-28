@@ -12,7 +12,8 @@ namespace Infrastructure
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services, 
+            IConfiguration configuration)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
@@ -20,10 +21,10 @@ namespace Infrastructure
                     b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
 
-            services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+            services.AddScoped<IApplicationDbContext>(provider => 
+            provider.GetRequiredService<ApplicationDbContext>());
 
-            services
-                .AddDefaultIdentity<ApplicationUser>()
+            services.AddDefaultIdentity<ApplicationUser>()
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
