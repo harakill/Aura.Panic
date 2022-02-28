@@ -2,7 +2,7 @@
 
 namespace Infrastructure.Identity
 {
-    internal class ApplicationUser : IdentityUser
+    public class ApplicationUser : IdentityUser
     {
     }
 }
