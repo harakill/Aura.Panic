@@ -37,13 +37,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseMigrationsEndPoint();
-
-    app.UseSwaggerUi3(settings =>
-    {
-        settings.Path = "/api";
-        settings.DocumentPath = "/api/specification.json";
-    });
 }
 else
 {
@@ -53,6 +48,13 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+app.UseOpenApi();
+app.UseSwaggerUi3(settings =>
+{
+    settings.Path = "/api";
+    settings.DocumentPath = "/api/specification.json";
+});
 
 app.UseRouting();
 
