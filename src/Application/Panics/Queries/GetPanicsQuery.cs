@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Panics.Queries
 {
-    public class GetPanicsQuery : IRequest<PanicListDto>
+    public class GetPanicsQuery : IRequest<PanicDto>
     {
     }
 
-    public class GetPanicsQueryHandler : IRequestHandler<GetPanicsQuery, PanicListDto>
+    public class GetPanicsQueryHandler : IRequestHandler<GetPanicsQuery, PanicDto>
     {
         private readonly IApplicationDbContext _context;
         private readonly IMapper _mapper;
@@ -21,9 +21,9 @@ namespace Application.Panics.Queries
             _mapper = mapper;
         }
 
-        public async Task<PanicListDto> Handle(GetPanicsQuery request, CancellationToken cancellationToken)
+        public async Task<PanicDto> Handle(GetPanicsQuery request, CancellationToken cancellationToken)
         {
-            return (PanicListDto)(await _context.Panics.ToListAsync())
+            return (PanicDto)(await _context.Panics.ToListAsync())
                 .OrderBy(fn => fn.FullName);
         }
     }
