@@ -3,7 +3,7 @@ using Domain.Entities;
 
 namespace Application.Panics.Queries
 {
-    public class PanicListDto : IMapFrom<Panic>
+    public class PanicDto : IMapFrom<Panic>
     {
         public int Id { get; set; }
         public string? FullName { get; set; }
