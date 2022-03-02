@@ -18,7 +18,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PanicDto"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PanicDto"
+                  }
                 }
               }
             }

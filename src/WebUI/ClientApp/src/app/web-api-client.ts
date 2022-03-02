@@ -16,7 +16,7 @@ import { HttpClient, HttpHeaders, HttpResponse, HttpResponseBase } from '@angula
 export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL');
 
 export interface IPanicClient {
-    get(): Observable<PanicDto>;
+    get(): Observable<PanicDto[]>;
     create(command: CreatePanicCommand): Observable<number>;
     update(id: number, command: UpdatePanicCommand): Observable<FileResponse>;
     delete(id: number): Observable<FileResponse>;
@@ -35,7 +35,7 @@ export class PanicClient implements IPanicClient {
         this.baseUrl = baseUrl !== undefined && baseUrl !== null ? baseUrl : "";
     }
 
-    get(): Observable<PanicDto> {
+    get(): Observable<PanicDto[]> {
         let url_ = this.baseUrl + "/api/Panic";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -54,14 +54,14 @@ export class PanicClient implements IPanicClient {
                 try {
                     return this.processGet(response_ as any);
                 } catch (e) {
-                    return _observableThrow(e) as any as Observable<PanicDto>;
+                    return _observableThrow(e) as any as Observable<PanicDto[]>;
                 }
             } else
-                return _observableThrow(response_) as any as Observable<PanicDto>;
+                return _observableThrow(response_) as any as Observable<PanicDto[]>;
         }));
     }
 
-    protected processGet(response: HttpResponseBase): Observable<PanicDto> {
+    protected processGet(response: HttpResponseBase): Observable<PanicDto[]> {
         const status = response.status;
         const responseBlob =
             response instanceof HttpResponse ? response.body :
@@ -72,7 +72,14 @@ export class PanicClient implements IPanicClient {
             return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = PanicDto.fromJS(resultData200);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(PanicDto.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
             return _observableOf(result200);
             }));
         } else if (status !== 200 && status !== 204) {
@@ -80,7 +87,7 @@ export class PanicClient implements IPanicClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             }));
         }
-        return _observableOf<PanicDto>(null as any);
+        return _observableOf<PanicDto[]>(null as any);
     }
 
     create(command: CreatePanicCommand): Observable<number> {
