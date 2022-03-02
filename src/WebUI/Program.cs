@@ -1,8 +1,12 @@
 using Application;
 using Application.Common.Interfaces;
 using Infrastructure;
+using Infrastructure.Persistence;
+using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Mvc;
 using NSwag;
 using NSwag.Generation.Processors.Security;
+using WebUI.Filters;
 using WebUI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,8 +19,20 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ApplicationDbContext>();
+
+builder.Services.AddControllersWithViews(options =>
+            options.Filters.Add<ApiExceptionFilterAttribute>())
+                .AddFluentValidation(x => x.AutomaticValidationEnabled = false);
+
 builder.Services.AddRazorPages();
+
+// Customise default API behaviour
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+    options.SuppressModelStateInvalidFilter = true);
 
 builder.Services.AddOpenApiDocument(configure =>
 {
@@ -49,7 +65,7 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseOpenApi();
+//app.UseOpenApi();
 app.UseSwaggerUi3(settings =>
 {
     settings.Path = "/api";
@@ -66,5 +82,8 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.MapFallbackToFile("index.html"); ;
+
+//Seed database;
+await DatabaseSetup.Seed(app);
 
 app.Run();
