@@ -16,7 +16,10 @@ import { HttpClient, HttpHeaders, HttpResponse, HttpResponseBase } from '@angula
 export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL');
 
 export interface IPanicClient {
-    getAllPanics(query: GetPanicsQuery): Observable<PanicListDto>;
+    get(): Observable<PanicDto>;
+    create(command: CreatePanicCommand): Observable<number>;
+    update(id: number, command: UpdatePanicCommand): Observable<FileResponse>;
+    delete(id: number): Observable<FileResponse>;
 }
 
 @Injectable({
@@ -32,11 +35,59 @@ export class PanicClient implements IPanicClient {
         this.baseUrl = baseUrl !== undefined && baseUrl !== null ? baseUrl : "";
     }
 
-    getAllPanics(query: GetPanicsQuery): Observable<PanicListDto> {
+    get(): Observable<PanicDto> {
         let url_ = this.baseUrl + "/api/Panic";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(query);
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGet(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGet(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<PanicDto>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<PanicDto>;
+        }));
+    }
+
+    protected processGet(response: HttpResponseBase): Observable<PanicDto> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PanicDto.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<PanicDto>(null as any);
+    }
+
+    create(command: CreatePanicCommand): Observable<number> {
+        let url_ = this.baseUrl + "/api/Panic";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(command);
 
         let options_ : any = {
             body: content_,
@@ -48,21 +99,21 @@ export class PanicClient implements IPanicClient {
             })
         };
 
-        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
-            return this.processGetAllPanics(response_);
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processCreate(response_);
         })).pipe(_observableCatch((response_: any) => {
             if (response_ instanceof HttpResponseBase) {
                 try {
-                    return this.processGetAllPanics(response_ as any);
+                    return this.processCreate(response_ as any);
                 } catch (e) {
-                    return _observableThrow(e) as any as Observable<PanicListDto>;
+                    return _observableThrow(e) as any as Observable<number>;
                 }
             } else
-                return _observableThrow(response_) as any as Observable<PanicListDto>;
+                return _observableThrow(response_) as any as Observable<number>;
         }));
     }
 
-    protected processGetAllPanics(response: HttpResponseBase): Observable<PanicListDto> {
+    protected processCreate(response: HttpResponseBase): Observable<number> {
         const status = response.status;
         const responseBlob =
             response instanceof HttpResponse ? response.body :
@@ -73,7 +124,8 @@ export class PanicClient implements IPanicClient {
             return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = PanicListDto.fromJS(resultData200);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
             return _observableOf(result200);
             }));
         } else if (status !== 200 && status !== 204) {
@@ -81,11 +133,113 @@ export class PanicClient implements IPanicClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             }));
         }
-        return _observableOf<PanicListDto>(null as any);
+        return _observableOf<number>(null as any);
+    }
+
+    update(id: number, command: UpdatePanicCommand): Observable<FileResponse> {
+        let url_ = this.baseUrl + "/api/Panic/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(command);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "application/octet-stream"
+            })
+        };
+
+        return this.http.request("put", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processUpdate(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processUpdate(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<FileResponse>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<FileResponse>;
+        }));
+    }
+
+    protected processUpdate(response: HttpResponseBase): Observable<FileResponse> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            const fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+            const fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            return _observableOf({ fileName: fileName, data: responseBlob as any, status: status, headers: _headers });
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<FileResponse>(null as any);
+    }
+
+    delete(id: number): Observable<FileResponse> {
+        let url_ = this.baseUrl + "/api/Panic/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/octet-stream"
+            })
+        };
+
+        return this.http.request("delete", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processDelete(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processDelete(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<FileResponse>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<FileResponse>;
+        }));
+    }
+
+    protected processDelete(response: HttpResponseBase): Observable<FileResponse> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            const fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+            const fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            return _observableOf({ fileName: fileName, data: responseBlob as any, status: status, headers: _headers });
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<FileResponse>(null as any);
     }
 }
 
-export class PanicListDto implements IPanicListDto {
+export class PanicDto implements IPanicDto {
     id?: number;
     fullName?: string | undefined;
     phone?: string | undefined;
@@ -93,7 +247,7 @@ export class PanicListDto implements IPanicListDto {
     longitude?: number;
     note?: string | undefined;
 
-    constructor(data?: IPanicListDto) {
+    constructor(data?: IPanicDto) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -113,9 +267,9 @@ export class PanicListDto implements IPanicListDto {
         }
     }
 
-    static fromJS(data: any): PanicListDto {
+    static fromJS(data: any): PanicDto {
         data = typeof data === 'object' ? data : {};
-        let result = new PanicListDto();
+        let result = new PanicDto();
         result.init(data);
         return result;
     }
@@ -132,7 +286,7 @@ export class PanicListDto implements IPanicListDto {
     }
 }
 
-export interface IPanicListDto {
+export interface IPanicDto {
     id?: number;
     fullName?: string | undefined;
     phone?: string | undefined;
@@ -141,9 +295,14 @@ export interface IPanicListDto {
     note?: string | undefined;
 }
 
-export class GetPanicsQuery implements IGetPanicsQuery {
+export class CreatePanicCommand implements ICreatePanicCommand {
+    fullName?: string | undefined;
+    phone?: string | undefined;
+    latitude?: number;
+    longitude?: number;
+    note?: string | undefined;
 
-    constructor(data?: IGetPanicsQuery) {
+    constructor(data?: ICreatePanicCommand) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -153,22 +312,102 @@ export class GetPanicsQuery implements IGetPanicsQuery {
     }
 
     init(_data?: any) {
+        if (_data) {
+            this.fullName = _data["fullName"];
+            this.phone = _data["phone"];
+            this.latitude = _data["latitude"];
+            this.longitude = _data["longitude"];
+            this.note = _data["note"];
+        }
     }
 
-    static fromJS(data: any): GetPanicsQuery {
+    static fromJS(data: any): CreatePanicCommand {
         data = typeof data === 'object' ? data : {};
-        let result = new GetPanicsQuery();
+        let result = new CreatePanicCommand();
         result.init(data);
         return result;
     }
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
+        data["fullName"] = this.fullName;
+        data["phone"] = this.phone;
+        data["latitude"] = this.latitude;
+        data["longitude"] = this.longitude;
+        data["note"] = this.note;
         return data;
     }
 }
 
-export interface IGetPanicsQuery {
+export interface ICreatePanicCommand {
+    fullName?: string | undefined;
+    phone?: string | undefined;
+    latitude?: number;
+    longitude?: number;
+    note?: string | undefined;
+}
+
+export class UpdatePanicCommand implements IUpdatePanicCommand {
+    id?: number;
+    fullName?: string | undefined;
+    phone?: string | undefined;
+    latitude?: number;
+    longitude?: number;
+    note?: string | undefined;
+
+    constructor(data?: IUpdatePanicCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.fullName = _data["fullName"];
+            this.phone = _data["phone"];
+            this.latitude = _data["latitude"];
+            this.longitude = _data["longitude"];
+            this.note = _data["note"];
+        }
+    }
+
+    static fromJS(data: any): UpdatePanicCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdatePanicCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["fullName"] = this.fullName;
+        data["phone"] = this.phone;
+        data["latitude"] = this.latitude;
+        data["longitude"] = this.longitude;
+        data["note"] = this.note;
+        return data;
+    }
+}
+
+export interface IUpdatePanicCommand {
+    id?: number;
+    fullName?: string | undefined;
+    phone?: string | undefined;
+    latitude?: number;
+    longitude?: number;
+    note?: string | undefined;
+}
+
+export interface FileResponse {
+    data: Blob;
+    status: number;
+    fileName?: string;
+    headers?: { [name: string]: any };
 }
 
 export class SwaggerException extends Error {
