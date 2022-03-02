@@ -9,7 +9,7 @@ namespace WebUI.Controllers
     public class PanicController : ApiControllerBase
     {
         [HttpGet]
-        public async Task<ActionResult<PanicDto>> Get()
+        public async Task<IList<PanicDto>> Get()
         {
             return await Mediator.Send(new GetPanicsQuery());
         }
