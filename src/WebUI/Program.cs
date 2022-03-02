@@ -74,6 +74,8 @@ app.UseSwaggerUi3(settings =>
 
 app.UseRouting();
 
+app.UseAuthentication();
+app.UseIdentityServer();
 app.UseAuthorization();
 
 app.MapControllerRoute(
