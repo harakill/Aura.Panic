@@ -2,6 +2,7 @@ using NUnit.Framework;
 
 namespace Application.UnitTests
 {
+    [TestFixture]
     public class Tests
     {
         [SetUp]
